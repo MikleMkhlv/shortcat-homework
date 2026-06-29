@@ -55,6 +55,8 @@ func (es *EventStore) GetAll() []Event {
 
 func (es *EventStore) GetByID(id int) (Event, bool) {
 	// TODO: найти событие по ID
+	es.mu.Lock()
+	defer es.mu.Unlock()
 	if value, ok := es.store[id]; ok {
 		return value, true
 	}
@@ -107,7 +109,22 @@ func (es *EventStore) GetRange(startID, endID int) []Event {
 		return a.ID - b.ID
 	})
 
-	return allEvents
+	events := make([]Event, 0, len(allEvents))
+
+	startIndex := slices.IndexFunc(allEvents, func(e Event) bool {
+		return e.ID == startID
+	})
+
+	endIndex := slices.IndexFunc(allEvents, func(e Event) bool {
+		return e.ID == endID
+	})
+
+	if startIndex == -1 || endIndex == -1 || startIndex > endIndex {
+		return nil
+	}
+
+	copy(events, allEvents[startIndex:endIndex+1])
+	return events
 }
 
 func (es *EventStore) Filter(predicate func(Event) bool) []Event {

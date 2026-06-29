@@ -24,19 +24,19 @@ type LRUCache struct {
 func NewLRUCache(capacity int) *LRUCache {
 	return &LRUCache{
 		capacity:  capacity,
-		cache:     make(map[string]*CacheEntry, capacity+1),
+		cache:     make(map[string]*CacheEntry, capacity),
 		statistic: CacheStats{},
 	}
 }
 
 func (c *LRUCache) Get(key string) (interface{}, bool) {
 	c.mx.Lock()
+	defer c.mx.Unlock()
 	if val, ok := c.cache[key]; ok {
 		val.UsesCount++
 		c.statistic.Hits++
 		return val, true
 	}
-	c.mx.Unlock()
 	c.statistic.Misses++
 
 	return nil, false
@@ -51,6 +51,11 @@ func (c *LRUCache) Put(key string, value interface{}) {
 		val.Value = value
 		return
 	} else {
+		newEntry := &CacheEntry{
+			Key:       key,
+			Value:     value,
+			UsesCount: 0,
+		}
 		if c.Len() >= c.capacity {
 			entries := slices.Collect(maps.Values(c.cache))
 			sort.Slice(entries, func(i, j int) bool {
@@ -58,14 +63,11 @@ func (c *LRUCache) Put(key string, value interface{}) {
 			})
 			keyDeletedCache := entries[0].Key
 			delete(c.cache, keyDeletedCache)
-			c.capacity--
 			c.statistic.Evictions++
 
-			c.cache[key] = &CacheEntry{
-				Key:       key,
-				Value:     value,
-				UsesCount: 0,
-			}
+			c.cache[key] = newEntry
+		} else {
+			c.cache[key] = newEntry
 		}
 	}
 }

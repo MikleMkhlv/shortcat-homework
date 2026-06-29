@@ -67,10 +67,15 @@ func (g *Graph) AddConnection(fromID, toID int) bool {
 }
 
 func (g *Graph) GetConnections(userID int) []*User {
-	return slices.Collect(maps.Values(g.data[userID]))
+	g.mx.Lock()
+	connections := slices.Collect(maps.Values(g.data[userID]))
+	g.mx.Unlock()
+	return connections
 }
 
 func (g *Graph) HasConnection(fromID, toID int) bool {
+	g.mx.Lock()
+	defer g.mx.Unlock()
 	if _, ok := g.data[fromID][toID]; ok {
 		return true
 	}
@@ -130,7 +135,10 @@ func (g *Graph) IsMutual(id1, id2 int) bool {
 }
 
 func (g *Graph) ConnectionCount(userID int) int {
-	return len(g.data[userID])
+	g.mx.Lock()
+	conCount := len(g.data[userID])
+	g.mx.Unlock()
+	return conCount
 }
 
 func (g *Graph) CommonConnections(id1, id2 int) []*User {
@@ -203,7 +211,10 @@ func (g *Graph) SuggestConnections(userID int) []*User {
 }
 
 func (g *Graph) GetAllUsers() []*User {
-	return slices.Collect(maps.Values(g.users))
+	g.mx.Lock()
+	users := slices.Collect(maps.Values(g.users))
+	g.mx.Unlock()
+	return users
 }
 
 func main() {
