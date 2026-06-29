@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func setupCacheeWithEntry(t *testing.T, cap int) *LRUCache {
+func setupCacheWithEntry(t *testing.T, cap int) *LRUCache {
 	t.Helper()
 	cache := NewLRUCache(cap)
 
@@ -27,7 +27,7 @@ func setupCacheeWithEntry(t *testing.T, cap int) *LRUCache {
 }
 
 func TestCorrectPutNewEntryInCacheWithoutDisplacement(t *testing.T) {
-	cache := setupCacheeWithEntry(t, 10)
+	cache := setupCacheWithEntry(t, 10)
 
 	expectedEntry := CacheEntry{
 		Key:   "test-6",
@@ -46,7 +46,7 @@ func TestCorrectPutNewEntryInCacheWithoutDisplacement(t *testing.T) {
 }
 
 func TestCorrectUpdateValue(t *testing.T) {
-	cache := setupCacheeWithEntry(t, 10)
+	cache := setupCacheWithEntry(t, 10)
 	expectedEntryWithNewValue := CacheEntry{
 		Key:   "test-6",
 		Value: "new_value_from_test6",
@@ -65,7 +65,7 @@ func TestCorrectUpdateValue(t *testing.T) {
 }
 
 func TestCheckcorrectIncrementUsesCount(t *testing.T) {
-	cache := setupCacheeWithEntry(t, 10)
+	cache := setupCacheWithEntry(t, 10)
 	expectedEntry := CacheEntry{
 		Key:       "test-5",
 		UsesCount: 8,
@@ -87,7 +87,7 @@ func TestCheckcorrectIncrementUsesCount(t *testing.T) {
 }
 
 func TestCorrectPutNewEntryInCacheWithDisplacement(t *testing.T) {
-	cache := setupCacheeWithEntry(t, 5)
+	cache := setupCacheWithEntry(t, 5)
 	expectedEntry := CacheEntry{
 		Key: "test-3",
 	}
@@ -125,7 +125,7 @@ func TestCorrectPutNewEntryInCacheWithDisplacement(t *testing.T) {
 }
 
 func TestDeleteEntryById(t *testing.T) {
-	cache := setupCacheeWithEntry(t, 5)
+	cache := setupCacheWithEntry(t, 5)
 	expectedEntry := CacheEntry{
 		Key: "test-3",
 	}

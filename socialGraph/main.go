@@ -16,7 +16,7 @@ type User struct {
 type Graph struct {
 	data  map[int]map[int]*User
 	users map[int]*User
-	mx    sync.Mutex
+	mx    sync.RWMutex
 }
 
 func NewGraph() *Graph {
@@ -116,8 +116,8 @@ func (g *Graph) RemoveUser(id int) bool {
 		return false
 	}
 	for _, val := range g.data[id] {
-		if g.HasConnection(val.ID, id) {
-			delete(g.data[val.ID], id)
+		if neighborConnections, exists := g.data[val.ID]; exists {
+			delete(neighborConnections, id)
 		}
 	}
 	delete(g.data, id)
@@ -157,9 +157,6 @@ func (g *Graph) CommonConnections(id1, id2 int) []*User {
 		if _, ok := g.data[id1][id2]; !ok {
 			return nil
 		}
-		// if g.HasConnection(id2, key) {
-		// 	general = append(general, user)
-		// }
 		general = append(general, user)
 
 	}
@@ -168,18 +165,6 @@ func (g *Graph) CommonConnections(id1, id2 int) []*User {
 
 func (g *Graph) SuggestConnections(userID int) []*User {
 	// TODO: найти друзей друзей, исключая текущие связи и самого пользователя
-	// g.mx.Lock()
-	// defer g.mx.Unlock()
-	// frendList := make([]*User, 0, 30)
-	// for fid := range g.data[userID] {
-	// 	for ffid, ffUser := range g.data[fid] {
-	// 		if g.HasConnection(userID, ffid) || g.HasConnection(fid, ffid) {
-	// 			continue
-	// 		}
-	// 		frendList = append(frendList, ffUser)
-	// 	}
-	// }
-	// return frendList
 	g.mx.Lock()
 	defer g.mx.Unlock()
 	userFrends, exists := g.data[userID]
