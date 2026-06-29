@@ -100,30 +100,28 @@ func (es *EventStore) FindAfter(timestamp time.Time) []Event {
 }
 
 func (es *EventStore) GetRange(startID, endID int) []Event {
-	// TODO: включая startID и endID
-	es.mu.Lock()
-	allEvents := slices.Collect(maps.Values(es.store))
-	es.mu.Unlock()
-
-	slices.SortFunc(allEvents, func(a, b Event) int {
-		return a.ID - b.ID
-	})
-
-	events := make([]Event, 0, len(allEvents))
-
-	startIndex := slices.IndexFunc(allEvents, func(e Event) bool {
-		return e.ID == startID
-	})
-
-	endIndex := slices.IndexFunc(allEvents, func(e Event) bool {
-		return e.ID == endID
-	})
-
-	if startIndex == -1 || endIndex == -1 || startIndex > endIndex {
+	if startID > endID {
 		return nil
 	}
 
-	copy(events, allEvents[startIndex:endIndex+1])
+	es.mu.Lock()
+	events := make([]Event, 0, len(es.store))
+
+	for _, event := range es.store {
+		if event.ID >= startID && event.ID <= endID {
+			events = append(events, event)
+		}
+	}
+	es.mu.Unlock()
+
+	if len(events) == 0 {
+		return nil
+	}
+
+	slices.SortFunc(events, func(a, b Event) int {
+		return a.ID - b.ID
+	})
+
 	return events
 }
 
