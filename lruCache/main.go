@@ -29,7 +29,7 @@ func NewLRUCache(capacity int) *LRUCache {
 	}
 }
 
-func (c *LRUCache) Get(key string) (interface{}, bool) {
+func (c *LRUCache) Get(key string) (any, bool) {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 	if val, ok := c.cache[key]; ok {
@@ -42,7 +42,7 @@ func (c *LRUCache) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
-func (c *LRUCache) Put(key string, value interface{}) {
+func (c *LRUCache) Put(key string, value any) {
 	// TODO: добавить/обновить элемент
 	// TODO: при переполнении удалить наименее использованный
 	c.mx.Lock()
@@ -88,6 +88,8 @@ func (c *LRUCache) Clear() {
 }
 
 func (c *LRUCache) Delete(key string) bool {
+	c.mx.Lock()
+	defer c.mx.Unlock()
 	delete(c.cache, key)
 	if _, ok := c.cache[key]; !ok {
 		return true
@@ -97,6 +99,8 @@ func (c *LRUCache) Delete(key string) bool {
 
 func (c *LRUCache) Contains(key string) bool {
 	// TODO: проверить без обновления статистики использования
+	c.mx.Lock()
+	defer c.mx.Unlock()
 	if _, ok := c.cache[key]; ok {
 		return true
 	}
